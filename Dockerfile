@@ -15,14 +15,19 @@ RUN apt-get update \
         git \
         jq \
         ruby \
+        nodejs \
+        ssh \
+        wget \
+        file \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && useradd -m github \
+    && npm install -g yarn \
+    && useradd -u 1000 -m github \
     && usermod -aG sudo github \
     && echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
     && sudo gem install jwt faraday --no-doc
 
-USER github
+USER 1000
 WORKDIR /home/github
 
 RUN curl -Ls https://github.com/actions/runner/releases/download/v${GITHUB_RUNNER_VERSION}/actions-runner-linux-x64-${GITHUB_RUNNER_VERSION}.tar.gz | tar xz \
