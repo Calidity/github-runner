@@ -12,13 +12,15 @@ GITHUB_APP_CUSTOM_MEDIA_TYPE = 'application/vnd.github.machine-man-preview+json'
 
 PRIVATE_KEY_PATH = '/private-key.cer'
 
-registration_url = "https://api.github.com/orgs/#{GITHUB_OWNER}/actions/runners/registration-token"
-
-puts "Requesting registration URL at '#{registration_url}'"
-
 def get_runner_token_with_token token
+    registration_url = "https://api.github.com/orgs/#{GITHUB_OWNER}/actions/runners/registration-token"
     response = Faraday.post registration_url do |req|
         req.headers['Authorization'] = "Token #{token}"
+    end
+    puts "[-] POST #{registration_url}: #{response.status}"
+    if response.status < 200 || response.status > 299
+        puts "[!] Error: "
+        p response.body
     end
     payload_parsed = JSON.parse(response.body)
     payload_parsed["token"]
@@ -29,13 +31,24 @@ def get_installation_id jwt
         req.headers['Authorization'] = "Bearer #{jwt}"
         req.headers['Accept'] = GITHUB_APP_CUSTOM_MEDIA_TYPE
     end
+    puts "[-] GET https://api.github.com/app/installations: #{response.status}"
+    if response.status < 200 || response.status > 299
+        puts "[!] Error: "
+        p response.body
+    end
     payload_parsed = JSON.parse response.body
     payload_parsed[0]["id"]
 end
 
 def get_installation_access_token(installation_id, jwt)
-    response = Faraday.post "https://api.github/app/installations/#{installation_id}/access_tokens" do |req|
+    response = Faraday.post "https://api.github.com/app/installations/#{installation_id}/access_tokens" do |req|
         req.headers['Authorization'] = "Bearer #{jwt}"
+        req.headers['Accept'] = GITHUB_APP_CUSTOM_MEDIA_TYPE
+    end
+    puts "[-] POST https://api.github.com/app/installations/#{installation_id}/access_tokens: #{response.status}"
+    if response.status < 200 || response.status > 299
+        puts "[!] Error: "
+        p response.body
     end
     payload_parsed = JSON.parse response.body
     payload_parsed["token"]
@@ -64,9 +77,10 @@ def get_runner_token private_key_filename
 
     # 4. get access token that grants access to an org that installed the app
     puts "[+] Creating an access token for the installation..."
-    ins_acc_token = get_installation_access_token installation jwt
+    ins_acc_token = get_installation_access_token(installation_id, jwt)
 
     # 5. get runner authorization token from access token
+    puts "[+] Creating runner token..."
     get_runner_token_with_token ins_acc_token
 end
 
@@ -74,7 +88,7 @@ end
 # RUNNER_TOKEN = get_runner_token_with_personal_token ENV['GITHUB_PAT']
 
 # To authenticate with a GitHub App private key:
-RUNNER_TOKEN = get_runner_token_with_private_key PRIVATE_KEY_PATH
+RUNNER_TOKEN = get_runner_token PRIVATE_KEY_PATH
 
 system "./config.sh",
     "--name", `hostname`.chomp,
