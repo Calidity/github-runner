@@ -19,7 +19,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && useradd -m github \
     && usermod -aG sudo github \
-    && echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    && echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
+    && sudo gem install jwt faraday --no-doc
 
 USER github
 WORKDIR /home/github

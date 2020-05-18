@@ -1,19 +1,80 @@
 #!/usr/bin/env ruby
 require 'json'
+require 'openssl'
+require 'jwt'
+require 'faraday'
 
 GITHUB_OWNER = ENV['GITHUB_OWNER']
-GITHUB_PAT   = ENV['GITHUB_PAT']
 RUNNER_WORKDIR = ENV['RUNNER_WORKDIR']
+GITHUB_APP_ID = ENV['GITHUB_APP_ID']
+
+GITHUB_APP_CUSTOM_MEDIA_TYPE = 'application/vnd.github.machine-man-preview+json'
+
+PRIVATE_KEY_PATH = '/private-key.cer'
 
 registration_url = "https://api.github.com/orgs/#{GITHUB_OWNER}/actions/runners/registration-token"
 
 puts "Requesting registration URL at '#{registration_url}'"
 
-payload = `curl -sX POST -H "Authorization: token #{GITHUB_PAT}" #{registration_url}`
+def get_runner_token_with_token token
+    response = Faraday.post registration_url do |req|
+        req.headers['Authorization'] = "Token #{token}"
+    end
+    payload_parsed = JSON.parse(response.body)
+    payload_parsed["token"]
+end
 
-payload_parsed = JSON.parse(payload)
+def get_installation_id jwt
+    response = Faraday.get "https://api.github.com/app/installations" do |req|
+        req.headers['Authorization'] = "Bearer #{jwt}"
+        req.headers['Accept'] = GITHUB_APP_CUSTOM_MEDIA_TYPE
+    end
+    payload_parsed = JSON.parse response.body
+    payload_parsed[0]["id"]
+end
 
-RUNNER_TOKEN = payload_parsed["token"]
+def get_installation_access_token(installation_id, jwt)
+    response = Faraday.post "https://api.github/app/installations/#{installation_id}/access_tokens" do |req|
+        req.headers['Authorization'] = "Bearer #{jwt}"
+    end
+    payload_parsed = JSON.parse response.body
+    payload_parsed["token"]
+end
+
+def get_runner_token private_key_filename
+
+    # 1. get the private key from storage
+    puts "[+] Loading private key..."
+    private_pem = File.read(private_key_filename)
+    private_key = OpenSSL::PKey::RSA.new private_pem
+
+    # 2. sign a JWT with that private key
+    puts "[+] Creating JWT..."
+    jwt_details = {
+        iat: Time.now.to_i,
+        exp: Time.now.to_i + (10 * 60),
+        iss: GITHUB_APP_ID
+    }
+
+    jwt = JWT.encode(jwt_details, private_key, 'RS256')
+
+    # 3. get the first installation's ID
+    puts "[+] Loading installation ID..."
+    installation_id = get_installation_id jwt
+
+    # 4. get access token that grants access to an org that installed the app
+    puts "[+] Creating an access token for the installation..."
+    ins_acc_token = get_installation_access_token installation jwt
+
+    # 5. get runner authorization token from access token
+    get_runner_token_with_token ins_acc_token
+end
+
+# To authenticate with a GitHub personal access token:
+# RUNNER_TOKEN = get_runner_token_with_personal_token ENV['GITHUB_PAT']
+
+# To authenticate with a GitHub App private key:
+RUNNER_TOKEN = get_runner_token_with_private_key PRIVATE_KEY_PATH
 
 system "./config.sh",
     "--name", `hostname`.chomp,
