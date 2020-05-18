@@ -1,33 +1,32 @@
-FROM debian:buster-slim
+FROM node:current-stretch-slim
 
 ARG GITHUB_RUNNER_VERSION="2.262.1"
 
 ENV RUNNER_NAME "runner"
 ENV GITHUB_PAT ""
 ENV GITHUB_OWNER ""
-ENV GITHUB_REPOSITORY ""
+ENV GITHUB_APP_ID ""
 ENV RUNNER_WORKDIR "_work"
 
-RUN apt-get update \
-    && apt-get install -y \
+RUN apt-get update
+RUN apt-get install -y \
         curl \
         sudo \
         git \
         jq \
         ruby \
-        nodejs \
         ssh \
         wget \
-        file \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && npm install -g yarn \
-    && useradd -u 1000 -m github \
-    && usermod -aG sudo github \
-    && echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
-    && sudo gem install jwt faraday --no-doc
+        curl \
+        file
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/*
+RUN useradd -u 1001 -m github
+RUN usermod -aG sudo github
+RUN echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN gem install jwt faraday --no-doc
 
-USER 1000
+USER 1001
 WORKDIR /home/github
 
 RUN curl -Ls https://github.com/actions/runner/releases/download/v${GITHUB_RUNNER_VERSION}/actions-runner-linux-x64-${GITHUB_RUNNER_VERSION}.tar.gz | tar xz \
