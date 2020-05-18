@@ -38,7 +38,7 @@ In order to use this project:
 
 1. Get your key file and app ID ready, to use the GitHub App method (recommended)
 2. Build the project: `docker build -t runner .`
-3. Run the project: `docker run -it -e GITHUB_OWNER=orgnamehere -e GITHUB_APP_ID=appidhere -v $(pwd)/private-key.cer:/private-key.cer:ro runner`
+3. Run the project: `docker run -it -e GITHUB_OWNER=orgnamehere -e GITHUB_APP_ID=appidhere -v $(pwd)/private-key.cer:/certs/private-key:ro runner`
 4. Stop the project with Ctrl+C. It should automatically clean up.
 
 ## Running the project (Personal access token)

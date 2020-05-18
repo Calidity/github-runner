@@ -10,7 +10,7 @@ GITHUB_APP_ID = ENV['GITHUB_APP_ID']
 
 GITHUB_APP_CUSTOM_MEDIA_TYPE = 'application/vnd.github.machine-man-preview+json'
 
-PRIVATE_KEY_PATH = '/private-key.cer'
+PRIVATE_KEY_PATH = '/certs/private-key'
 
 def get_runner_token_with_token token
     registration_url = "https://api.github.com/orgs/#{GITHUB_OWNER}/actions/runners/registration-token"
