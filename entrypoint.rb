@@ -84,11 +84,11 @@ def get_runner_token private_key_filename
     get_runner_token_with_token ins_acc_token
 end
 
-# To authenticate with a GitHub personal access token:
-# RUNNER_TOKEN = get_runner_token_with_personal_token ENV['GITHUB_PAT']
+# To authenticate with a GitHub personal access token
+RUNNER_TOKEN = get_runner_token_with_personal_token unless ENV['GITHUB_PAT'].empty?
 
 # To authenticate with a GitHub App private key:
-RUNNER_TOKEN = get_runner_token PRIVATE_KEY_PATH
+RUNNER_TOKEN = get_runner_token PRIVATE_KEY_PATH if ENV['GITHUB_PAT'].empty?
 
 system "./config.sh",
     "--name", `hostname`.chomp,
