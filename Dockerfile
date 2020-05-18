@@ -14,6 +14,7 @@ RUN apt-get update \
         sudo \
         git \
         jq \
+        ruby \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && useradd -m github \
@@ -26,7 +27,7 @@ WORKDIR /home/github
 RUN curl -Ls https://github.com/actions/runner/releases/download/v${GITHUB_RUNNER_VERSION}/actions-runner-linux-x64-${GITHUB_RUNNER_VERSION}.tar.gz | tar xz \
     && sudo ./bin/installdependencies.sh
 
-COPY --chown=github:github entrypoint.sh ./entrypoint.sh
-RUN sudo chmod u+x ./entrypoint.sh
+COPY --chown=github:github entrypoint.rb ./entrypoint.rb
+RUN sudo chmod u+x ./entrypoint.rb
 
-ENTRYPOINT ["/home/github/entrypoint.sh"]
+ENTRYPOINT ["/home/github/entrypoint.rb"]
