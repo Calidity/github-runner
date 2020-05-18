@@ -30,3 +30,5 @@ spec:
       - name: privatekey
         secret:
           secretName: github-runner-app-private-key
+# create secret with:
+# kubectl create secret generic github-runner-app-private-key --from-file=private-key=./private-key.cer
