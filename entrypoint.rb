@@ -103,11 +103,13 @@ def remove
 end
 
 trap "SIGINT" do
+    puts "[+] Received SIGINT, shutting down..."
     remove
     exit 130
 end
 
 trap "SIGTERM" do
+    puts "[+] Received SIGTERM, shutting down..."
     remove
     exit 143
 end
