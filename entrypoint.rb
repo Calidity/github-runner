@@ -99,7 +99,7 @@ system "./config.sh",
     "--replace"
 
 def remove
-    `./config.sh remove --unattended --token "#{RUNNER_TOKEN}"`
+    `./bin/Runner.Listener remove --unattended --token "#{RUNNER_TOKEN}"`
 end
 
 trap "SIGINT" do
