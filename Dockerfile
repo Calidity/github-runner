@@ -19,7 +19,8 @@ RUN apt-get install -y \
         ssh \
         wget \
         curl \
-        file
+        file \
+        iputils-ping
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/*
 RUN useradd -u 1001 -m github
@@ -34,7 +35,7 @@ RUN curl -Ls https://github.com/actions/runner/releases/download/v${GITHUB_RUNNE
     && sudo ./bin/installdependencies.sh
 
 # Install kubectl for managing Kubernetes clusters/deployments etc
-RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl /usr/local/bin/kubectl
+RUN sudo curl -L -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl
 RUN sudo chmod +x /usr/local/bin/kubectl
 
 COPY --chown=github:github entrypoint.rb ./entrypoint.rb
