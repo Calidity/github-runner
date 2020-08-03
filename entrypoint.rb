@@ -8,6 +8,14 @@ GITHUB_OWNER = ENV['GITHUB_OWNER']
 RUNNER_WORKDIR = ENV['RUNNER_WORKDIR']
 GITHUB_APP_ID = ENV['GITHUB_APP_ID']
 
+custom_label = ENV['RUNNER_LABEL']
+
+LABELS = [
+    'kubernetes'
+]
+
+LABELS << custom_label if custom_label
+
 GITHUB_APP_CUSTOM_MEDIA_TYPE = 'application/vnd.github.machine-man-preview+json'
 
 PRIVATE_KEY_PATH = '/certs/private-key'
@@ -94,6 +102,7 @@ system "./config.sh",
     "--name", `hostname`.chomp,
     "--token", RUNNER_TOKEN,
     "--work", RUNNER_WORKDIR,
+    "--labels", LABELS.join(","),
     "--url", "https://github.com/#{GITHUB_OWNER}",
     "--unattended",
     "--replace"
